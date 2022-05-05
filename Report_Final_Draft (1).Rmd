@@ -1,0 +1,192 @@
+---
+title: "Project 2"
+author: "520444524, 520268067,520496534"
+subtitle: "Do students prefer on campus or online learning?"
+date: "University of Sydney | April 2022"
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    self_contained: yes
+    theme: flatly
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+---
+
+<br>
+
+# Executive Summary
+
+We were interested in this question to find out students’ preference of different modes of delivery, i.e., online vs. on campus. We were especially interested to understand the factors that impact this preference, e.g., age, distance from university, gender, etc. 
+<br>
+
+# Full Report
+
+
+## Initial Data Analysis (IDA)
+The table below shows the result of our survey:
+```{r, message=FALSE, comment=''}
+survey=read.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vQgSF4FbP15vDzvQNhSlklbahPiXPyN6gnXFXD42COpxR2q8TdBmTeDdwJBcy6poXgoQoq1vPu_nysB/pub?gid=0&single=true&output=csv', header=T)
+knitr::kable(survey)
+```
+The obtained data has the following structure:
+
+```{r, message=FALSE, warning=FALSE}
+str(survey)
+# loading packages and libraries 
+library(tidyverse)
+```
+
+### Source
+This data was collected using google forms (https://forms.gle/LC17McfgU2vU6hWe7) to create a survey, which was shared with friends via email and our classmates via ED discussion page. 
+
+### Structure
+Our data consists of 33 rows, which represent answers. It also has 11 columns, which represent our survey questions, including qualitative and quantitative variables. 
+
+### Limitations
+We encountered the following limitations:
+<ul>
+<li>Making sure that the collected data is not biased as we were collecting the data only 
+from the University of Sydney students. </li>
+<li>Small sample size. </li>
+<li>Selected bias: cause the form send to our friends, thus there are selected biases</li> 
+<li>We were concerned that the experience of studying online due to the pandemic 
+might already impact the questionees. For example, we were curious if some would prefer on campus over online studies, just because they would like to get out more. Hence, their answer might change once society goes back to normal, i.e., when the experience of going out is not only limited to on campus study.</li>
+</ul>
+
+
+## Does gender have an impact on preferring to study on campus or online?
+
+```{r}
+# gender and study mode preference
+ggplot(survey, aes(x=Gender, fill=Mode)) + geom_bar()
+
+```
+
+### Analysis and Summary
+Over 80% of females and 60% of males prefer to study on campus. Although the percentage of on campus learning preference is higher among females, overall, both gender prefer to study on campus.
+
+
+## Do people who work full-time prefer to study online?
+```{r}
+# employment status and mode preference 
+ggplot(survey, aes(x=Mode, fill=Employment)) + geom_bar()
+
+```
+
+### Analysis and Summary
+
+Most of the students, full-time and part-time employees chose on campus learning over online learning. People who work casually do not prefer to study online. These results were interesting as we expected that full time employees would prefer to study online.
+
+## Do people who live closer to university prefer to study on campus?
+
+```{r,message=FALSE}
+survey %>%
+  group_by(Mode,Distance) %>%
+  summarise(mean_Traveltime= mean(Traveltime)) %>%
+  ggplot(aes(x=Distance, y=mean_Traveltime, color=Mode))+
+  geom_point() +ylab("Travel time (h)") + xlab("Distance to campus (km)") + geom_smooth()
+
+
+```
+
+
+### Analysis and summary
+A number of interesting observations can be made here. Firstly, the red dots are almost uniformly spread across the distance. This means the distance to the university does not seem to have an impact on the students' preferences. Even students who live as far as 40 km from the campus prefer to study on campus delivery more. Furthermore,  the results show that the majority of the survey participant live within 20 km radius of the campus. Finally, it can be observed that a single data point at a distance just above 20 km with a travel time of more than 5 hours. This could be due to wrong data and or could be due to some transportation issues in the suburb of the participant. 
+
+
+
+## Is there a correlation between distance and employment status?
+
+```{r, message=FALSE}
+ggplot(survey, aes(x=Employment, y=Distance, fill=Employment)) + geom_boxplot()
+```
+
+### Analysis and summary
+Through our observation, the distribution from Part-Time and Students are positively skewed. This can evident from the whisker and half box are longer on the upper half of the median than on the lower half.
+In contrast, Full-Time distribution is negatively skewed due to the whisker and half-box are longer on the lower half in comparison to upper half. In addition, the casual distribution is asymmetric with the median and lower half of the whisker fallen short from it being symmetric. We cannot conclude that the there is a correlation between employment status and distance. From this, we must include student's preferences of study mode.
+
+
+## Employement, distant, and mode preference 
+
+```{r, message=FALSE}
+ggplot(survey, aes(x=Employment, y=Distance, fill=Mode)) + geom_boxplot()  
+```
+
+### Analysis and summary
+With the inclusion of student study mode preferences, our boxplot analysis has change dramatically. Surprisingly, Full-Time distribution tend to prefer in person learning over remote and with the Mode preferences as our third variable, the distribution from full timers are symmetric with both half-boxes being almost the same length. Moreover, Student tend to prefer on campus than remote learning. This could be a preference matter due to pandemic that stagnated how we traditionally educate student over the past years. 
+
+## Is there a relationship between the average travel time and distance from university?
+
+```{r, message=FALSE}
+#scatter plot displaying distance v travel
+ggplot(survey, aes(x = Distance, y = Traveltime)) +
+  geom_point() +ylab("Travel time (h)") + xlab("Distance to campus (km)")+
+  stat_smooth()
+```
+
+```{r, message=FALSE, comment=''}
+cor(survey$Distance, survey$Traveltime)
+model <- lm(Traveltime ~ Distance, data = survey)
+#regression line / Residual standard error
+ggplot(survey, aes(Distance, Traveltime)) +
+  geom_point() +ylab("Travel time (h)") + xlab("Distance to campus (km)")+
+  stat_smooth(method = lm)
+confint(model)
+sigma(model)*100/mean(survey$Traveltime)
+```
+
+
+### Analysis and summary
+Shown by the predictive R-Squared, while there is a correlation between the two variables indicating that the probability is highly accurate. We cannot rely on the sample data to forecast the future. Therefore, our regression model is subjected to bias and we cannot rely on linear regression to predict future outcomes. In addition, the process of obtaining one observation does not entirely affect the process of obtaining the next observation (independence) (distance and actual travel time)
+
+There is no apparent curves in the plot which demonstrates that the models is linear in the parameters and its residuals.
+
+Why is the R Square close to 1, the model is bias and we cannot rely on a regression to predict the future outcome 
+
+
+
+
+
+
+
+
+
+<br>
+
+# Articles
+COVID-19 pandemic has certain impacted the behavior of students. Although, students have come into term and peace with the reality of the pandemic and online/remote learning, they still miss the on campus interactions (Almendingen et al., 2021). Overall, although online learning is more convenient as students can manage to study on their own time and at their own pace, they prefer to study on campus classes. This is because they find face-to-face learning more interactive and engaging (Kemp & Grieve, 2014).  
+
+
+<br>
+
+# References
+Kemp, N., & Grieve, R. (2014). Face-to-face or face-to-screen? Undergraduates' opinions and test performance in classroom vs. online learning. Frontiers in psychology, 5, 1278. https://doi.org/10.3389/fpsyg.2014.01278
+
+Almendingen, K., Morseth, M. S., Gjølstad, E., Brevik, A., & Tørris, C. (2021). Student’s experiences with online teaching following COVID-19 lockdown: A mixed methods explorative study. PLOS ONE, 16(8), e0250378. https://doi.org/10.1371/journal.pone.0250378
+
+
+<br>
+
+# Acknowledgments
+22/03/2022 5:30-6:30 pm:  
+The team decided on the topic and a google survey was created. 
+
+From 23/03/2022:  
+The team started to share the google survey with friends and Ed discussion page (28/03).
+
+24/03/2022 4:00 pm- 6:00 pm during Lab class: 
+The team decided on the questions and plots to include in the report. 
+Nozhan and Ryan started working on the codes and Ye started writing the proposal and the report. 
+
+31/03/2022 4:00 pm- 6:00 pm during Lab class: The team discussed the results. Nozhan and Ryan kept working on the codes and Ye kept working on the report. 
+
+08/04/2022 2:00 pm- 2:30 pm: Nozhan and Ye attended a zoom meeting and discussed the final works that needed to be done and overall team progress.
+
+From 08/04/2022 to 13/05/2022: Ryan and Nozhan finalised the codes and the plots. Nozhan and Ye finished the report. 
+
+
+
+
